@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphical Analysis</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+        rel="stylesheet">
+
+
+    <link rel="stylesheet" href="../static/assets/vendors/core/core.css">
+
+
+    <link rel="stylesheet" href="../static/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
+
+
+    <link rel="stylesheet" href="../static/assets/fonts/feather-font/css/iconfont.css">
+
+    <script src="https://kit.fontawesome.com/aab125e3bb.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="../static/assets/css/style.css">
+
+    <link rel="stylesheet" href="../static/assets/css/cutom.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    <link rel="shortcut icon" href="../static/assets/images/logo.png" />
+
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <a href="#">
+                    <img src="../static/assets/images/logo.png" alt="logo" class="w-75">
+                </a>
+                <div class="sidebar-toggler not-active">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="sidebar-body">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a href="/flights" class="nav-link">
+                            <i class="fa-sharp fa-solid fa-gauge"></i>
+                            <span class="link-title">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a href="/check-flight" class="nav-link">
+                            <i class="fa-sharp fa-solid fa-plane"></i>
+                            <span class="link-title">Check Flight</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a href="/watchlist" class="nav-link">
+                            <i class="fa-regular fa-eye"></i>
+                            <span class="link-title">Watchlist</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">
+                            <i class="fa fa-bar-chart"></i>
+                            <span class="link-title me-2">Graphical Analysis</span>
+                            <i class="fa fa-angle-down dropdown-icon mt-1"></i>
+                        </a>
+                        <ul class="sub-menu"> <!-- Added dropdown menu container -->
+                            <li class="nav-item" id="line-graph-menu">
+                                <a href="#" class="nav-link">
+                                    <span class="link-title">Line Graph</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" id="dotted-chart-menu">
+                                <a href="#" class="nav-link">
+                                    <span class="link-title">Dotted Graph</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="page-wrapper">
+            <nav class="navbar">
+
+            </nav>
+            <div class="gif-loader">
+                <img src="../static/assets/images/airplane-loader.gif" alt="">
+            </div>
+            <div class="page-content" id="pg-content">
+
+                <nav class="page-breadcrumb d-flex align-items-center justify-content-between">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Graphical Analysis</li>
+                    </ol>
+                    <a href="/flights" class="btn btn-primary"><i class="link-icon" data-feather="arrow-left"></i>
+                        Back to Dahsbaord</a>
+                </nav>
+                <div class="d-flex justify-content-between w-100">
+                    <div class="d-flex">
+                        <div class="input-group date mb-3" data-provide="datepicker" style="width: 200px;">
+                            <input type="text" class="form-control" placeholder="Start Date" id="start-date">
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                        <div class="input-group date mb-3 mx-2 " data-provide="datepicker" style="width: 200px;">
+                            <input type="text" class="form-control" placeholder="End Date" id="end-date">
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </div>
+                        </div>
+                        <div style="width: 200px;">
+                            <select id="mySelect" class="bg-white">
+
+                                <!-- Add more options here -->
+                            </select>
+
+                        </div>
+                    </div>
+                    <button class="btn btn-primary py-0" style="height: 40px;"
+                        onclick="filterFlightDelay()">Search</button>
+                </div>
+                <div id="linechart-container" class="line-chart-class">
+                    <canvas id="flightDelayChart" style="height: 400px"></canvas>
+                </div>
+                <div class="mt-5 dotted-chart-class" style="margin-top: 100px;" id="dotted-chart-container">
+                    <canvas id="dotted-chart" style="height: 400px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <script src="assets/js/datepicker.js"></script> -->
+    <!-- <script data-cfasync="false" src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script> -->
+
+
+
+    <!-- included scriptfiles -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="../static/assets/vendors/core/core.js"></script>
+    <script src="../static/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="../static/assets/vendors/feather-icons/feather.min.js"></script>
+    <script src="../static/assets/js/template.js"></script>
+    <!-- included scriptfiles -->
+
+    <!-- <script>(function () { var js = "window['__CF$cv$params']={r:'7db3fb04cd610dad',m:'nxhewYrAtgh3QUG6E5K.44kU.6UwT9CcMVW8k9Ub5bw-1687431552-0-AQvlesnBJnmjTuRlPDfS2VbC5lIBUxUo3W6TAh82CaKr'};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='../../../cdn-cgi/challenge-platform/h/b/scripts/jsd/19ad4730/invisible.js',document.getElementsByTagName('head')[0].appendChild(_cpo);"; var _0xh = document.createElement('iframe'); _0xh.height = 1; _0xh.width = 1; _0xh.style.position = 'absolute'; _0xh.style.top = 0; _0xh.style.left = 0; _0xh.style.border = 'none'; _0xh.style.visibility = 'hidden'; document.body.appendChild(_0xh); function handler() { var _0xi = _0xh.contentDocument || _0xh.contentWindow.document; if (_0xi) { var _0xj = _0xi.createElement('script'); _0xj.nonce = ''; _0xj.innerHTML = js; _0xi.getElementsByTagName('head')[0].appendChild(_0xj); } } if (document.readyState !== 'loading') { handler(); } else if (window.addEventListener) { document.addEventListener('DOMContentLoaded', handler); } else { var prev = document.onreadystatechange || function () { }; document.onreadystatechange = function (e) { prev(e); if (document.readyState !== 'loading') { document.onreadystatechange = prev; handler(); } }; } })();</script> -->
+
+
+
+    <!-- custom js -->
+    <script>
+
+        $(document).ready(function () {
+            var parentItems = document.querySelectorAll('.nav-item');
+            var lineGraphMenu = document.getElementById('line-graph-menu')
+            var dottedChartMenu = document.getElementById('dotted-chart-menu')
+            $('#linechart-container canvas').css({ 'display': 'block', "height": "400px" })
+
+
+
+            var parentMenu = document.querySelector(".dropdown");
+            var subMenus = document.querySelectorAll(".dropdown-menu .nav-item");
+
+            
+            $('#line-graph-menu').click(function () {
+                $('#dotted-chart-container ').css('display', 'none');
+                $('#linechart-container').css('display', 'block')
+                $('#linechart-container canvas').css({ 'display': 'block', "height": "400px" })
+            })
+
+            $('#dotted-chart-menu').click(function () {
+                $('#dotted-chart-container').css('display', 'block');
+                $('#dotted-chart-container canvas').css({ 'display': 'block', "height": "400px" });
+                $('#linechart-container').css('display', 'none')
+            })
+
+            // Add a click event listener to each submenu
+            subMenus.forEach(function (submenu) {
+                submenu.addEventListener("click", function () {
+                    // Remove "highlight" class from all submenus
+                    subMenus.forEach(function (submenu) {
+                        submenu.classList.remove("active");
+                    });
+
+                    // Add "highlight" class to the clicked submenu
+                    this.classList.add("active");
+
+                    // Add "highlight" class to the parent menu
+                    if (parentMenu) {
+                        parentMenu.classList.add("active");
+                    }
+                });
+            })
+
+            $('.gif-loader').css({  'display': 'flex','justify-content':'center','align-items':'center' });
+                setTimeout(() => {
+                    $('.gif-loader').css({ 'display': 'none' });
+                    $('#pg-content').css({ 'display': 'block' })
+                }, 2000);
+
+
+            // $('.sub-menu .nav-link').click(function(event) {
+            //     event.preventDefault(); // Prevent the default link behavior
+
+            //     // Remove active class from all submenu items
+            //     $('.sub-menu .nav-link').removeClass('active');
+
+            //     // Add active class to the clicked submenu item
+            //     $(this).addClass('active-sub-menu');
+            // });
+
+
+
+
+            // Add click event listener to each parent item
+            parentItems.forEach(function (parentItem) {
+                parentItem.addEventListener('click', function (event) {
+                    // Toggle the visibility of the sub-menu
+                    var subMenu = parentItem.querySelector('.sub-menu');
+                    if (subMenu) {
+                        event.preventDefault(); // Prevent the default link behavior
+                        subMenu.classList.toggle('show');
+
+                    }
+                });
+            });
+
+            const flights = [
+                {
+                    "flightNumber": "ABC123",
+                    "departureAirport": "JFK",
+                    "arrivalAirport": "LAX",
+                    "departureDate": "2023-06-01",
+                    "arrivalDate": "2023-06-01",
+                    "delayMinutes": 15
+                },
+                {
+                    "flightNumber": "DEF456",
+                    "departureAirport": "LHR",
+                    "arrivalAirport": "CDG",
+                    "departureDate": "2023-06-02",
+                    "arrivalDate": "2023-06-02",
+                    "delayMinutes": 0
+                },
+                {
+                    "flightNumber": "GHI789",
+                    "departureAirport": "ORD",
+                    "arrivalAirport": "DFW",
+                    "departureDate": "2023-06-03",
+                    "arrivalDate": "2023-06-03",
+                    "delayMinutes": 30
+                },
+                {
+                    "flightNumber": "JKL012",
+                    "departureAirport": "SYD",
+                    "arrivalAirport": "LAX",
+                    "departureDate": "2023-06-04",
+                    "arrivalDate": "2023-06-04",
+                    "delayMinutes": 45
+                },
+                {
+                    "flightNumber": "MNO345",
+                    "departureAirport": "HND",
+                    "arrivalAirport": "ICN",
+                    "departureDate": "2023-06-05",
+                    "arrivalDate": "2023-06-05",
+                    "delayMinutes": 10
+                },
+                {
+                    "flightNumber": "PQR678",
+                    "departureAirport": "FRA",
+                    "arrivalAirport": "MAD",
+                    "departureDate": "2023-06-06",
+                    "arrivalDate": "2023-06-06",
+                    "delayMinutes": 20
+                },
+                {
+                    "flightNumber": "STU901",
+                    "departureAirport": "DXB",
+                    "arrivalAirport": "JFK",
+                    "departureDate": "2023-06-07",
+                    "arrivalDate": "2023-06-07",
+                    "delayMinutes": 5
+                },
+                {
+                    "flightNumber": "VWX234",
+                    "departureAirport": "LAX",
+                    "arrivalAirport": "SFO",
+                    "departureDate": "2023-06-08",
+                    "arrivalDate": "2023-06-08",
+                    "delayMinutes": 0
+                },
+                {
+                    "flightNumber": "YZA567",
+                    "departureAirport": "PEK",
+                    "arrivalAirport": "HKG",
+                    "departureDate": "2023-06-09",
+                    "arrivalDate": "2023-06-09",
+                    "delayMinutes": 0
+                },
+                {
+                    "flightNumber": "BCD890",
+                    "departureAirport": "AMS",
+                    "arrivalAirport": "MUC",
+                    "departureDate": "2023-06-10",
+                    "arrivalDate": "2023-06-10",
+                    "delayMinutes": 15
+                },
+                {
+                    "flightNumber": "EFG123",
+                    "departureAirport": "LAX",
+                    "arrivalAirport": "JFK",
+                    "departureDate": "2023-06-11",
+                    "arrivalDate": "2023-06-11",
+                    "delayMinutes": 30
+                },
+                {
+                    "flightNumber": "HIJ456",
+                    "departureAirport": "CDG",
+                    "arrivalAirport": "LHR",
+                    "departureDate": "2023-06-12",
+                    "arrivalDate": "2023-06-12",
+                    "delayMinutes": -15
+                },
+                {
+                    "flightNumber": "KLM789",
+                    "departureAirport": "DFW",
+                    "arrivalAirport": "ORD",
+                    "departureDate": "2023-06-13",
+                    "arrivalDate": "2023-06-13",
+                    "delayMinutes": -10
+                },
+                {
+                    "flightNumber": "NOP012",
+                    "departureAirport": "LAX",
+                    "arrivalAirport": "SYD",
+                    "departureDate": "2023-06-14",
+                    "arrivalDate": "2023-06-14",
+                    "delayMinutes": -5
+                },
+                {
+                    "flightNumber": "QRS345",
+                    "departureAirport": "ICN",
+                    "arrivalAirport": "HND",
+                    "departureDate": "2023-06-15",
+                    "arrivalDate": "2023-06-15",
+                    "delayMinutes": -20
+                },
+                {
+                    "flightNumber": "TUV678",
+                    "departureAirport": "MAD",
+                    "arrivalAirport": "FRA",
+                    "departureDate": "2023-06-16",
+                    "arrivalDate": "2023-06-16",
+                    "delayMinutes": -10
+                },
+                {
+                    "flightNumber": "WXY901",
+                    "departureAirport": "JFK",
+                    "arrivalAirport": "DXB",
+                    "departureDate": "2023-06-17",
+                    "arrivalDate": "2023-06-17",
+                    "delayMinutes": -5
+                },
+                {
+                    "flightNumber": "ZAB234",
+                    "departureAirport": "SFO",
+                    "arrivalAirport": "LAX",
+                    "departureDate": "2023-06-18",
+                    "arrivalDate": "2023-06-18",
+                    "delayMinutes": -15
+                },
+                {
+                    "flightNumber": "CDE567",
+                    "departureAirport": "HKG",
+                    "arrivalAirport": "PEK",
+                    "departureDate": "2023-06-19",
+                    "arrivalDate": "2023-06-19",
+                    "delayMinutes": -5
+                },
+                {
+                    "flightNumber": "FGH890",
+                    "departureAirport": "MUC",
+                    "arrivalAirport": "AMS",
+                    "departureDate": "2023-06-20",
+                    "arrivalDate": "2023-06-20",
+                    "delayMinutes": -10
+                },
+                {
+                    "flightNumber": "IJK123",
+                    "departureAirport": "JFK",
+                    "arrivalAirport": "LAX",
+                    "departureDate": "2023-06-21",
+                    "arrivalDate": "2023-06-21",
+                    "delayMinutes": -15
+                },
+                {
+                    "flightNumber": "LMN456",
+                    "departureAirport": "LHR",
+                    "arrivalAirport": "CDG",
+                    "departureDate": "2023-06-22",
+                    "arrivalDate": "2023-06-22",
+                    "delayMinutes": -5
+                },
+                {
+                    "flightNumber": "OPQ789",
+                    "departureAirport": "DFW",
+                    "arrivalAirport": "ORD",
+                    "departureDate": "2023-06-23",
+                    "arrivalDate": "2023-06-23",
+                    "delayMinutes": -15
+                }
+            ]
+
+
+
+            function populateOptions(data) {
+                var options = '';
+                for (var i = 0; i < data.length; i++) {
+                    options += '<option value="' + data[i].flightNumber + '">' + data[i].flightNumber + '</option>';
+                }
+                $('#mySelect').html(options);
+                // Destroy the existing Choices instance
+                select = new Choices('#mySelect'); // Reinitialize Choices with updated options
+            }
+
+            // Call the populateOptions function with dynamic data
+            populateOptions(flights);
+
+            var startDateInput = document.getElementById('start-date');
+            var endDateInput = document.getElementById('end-date');
+
+            function dateFormatter(d) {
+                const month = d.getMonth() + 1;
+                const year = d.getFullYear();
+                const date = d.getDate();
+                let formattedDate;
+                if (month > 10 && date > 10) {
+                    formattedDate = `${year}-${month}-${date}`;
+                } else if (month < 10 && date < 10) {
+                    formattedDate = `${year}-0${month}-0${date}`;
+                } else if (month < 10 || date > 10) {
+                    formattedDate = `${year}-0${month}-${date}`;
+                } else if (date == 10 && month == 10 || date >= 10 && month >= 10) {
+                    formattedDate = `${year}-${month}-${date}`;
+                } else if (date < 10 || month > 10) {
+                    formattedDate = `${year}-${month}-0${date}`;
+                }
+
+                return formattedDate
+            }
+
+            function filterFlightDelay() {
+                let startDate = dateFormatter(new Date(startDateInput.value));
+                let endDate = dateFormatter(new Date(endDateInput.value));
+
+                var filteredFlights = flights.filter(function (flight) {
+                    var flightDate = flight.departureDate;
+                    return flightDate >= startDate && flightDate <= endDate;
+                });
+
+                console.log(filteredFlights, "353");
+                // return filteredFlights;
+            }
+
+            // console.log(flightDelayData, "163");;
+
+
+
+            // Sample flight delay data
+            var flightDelayData = {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                datasets: [{
+                    label: "Flight Delay",
+                    data: [1.5, 7, 3, 9, 6, 8],
+                    backgroundColor: "rgba(54, 162, 235, 0.5)",
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                }]
+            };
+
+
+            // Create the chart
+            var ctx = document.getElementById("flightDelayChart").getContext("2d");
+            new Chart(ctx, {
+                type: "line",
+                data: flightDelayData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Flight Delay (minutes)"
+                            }
+                        }]
+                    }
+                }
+            });
+
+
+
+            var ctx = document.getElementById('dotted-chart').getContext('2d');
+            var dottedChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: ['Label 1', 'Label 2', 'Label 3', 'Label 4', 'Label 5', 'Label 6', 'Label 7', 'Label 8', 'Label 9', 'Label 10'],
+                    datasets: [{
+                        label: 'Data',
+                        data: [
+                            { x: 10, y: 15 },
+                            { x: 15, y: 47 },
+                            { x: 20, y: 29 },
+                            { x: 25, y: 40 },
+                            { x: 30, y: 70 },
+                            { x: 35, y: 82 },
+                            { x: 40, y: 97 },
+                            { x: 45, y: 49 },
+                            { x: 50, y: 45 },
+                            { x: 55, y: 115 },
+                            { x: 60, y: 59 },
+                            { x: 65, y: 121 },
+                        ],
+                        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1,
+                        pointRadius: 5 // Set the radius of the data points
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Selected Flight Delay"
+                            }
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Previous Flight Delay"
+                            }
+                        }],
+                    }
+                }
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>

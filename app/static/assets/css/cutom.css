@@ -1,0 +1,70 @@
+.card .card-title{
+	text-transform: uppercase;
+    font-size: 30px;
+    font-weight: 500;
+    text-align: right;
+}
+.p-50{ padding: 60px 0 60px 0;
+
+}
+.card-body h3{
+    font-size: 20px;
+}
+.form-label {
+    margin-bottom: .5rem;
+    font-weight: 600;
+}
+
+span.cancel {
+    background-color: #ff3e3e !important;
+    color: #fff;
+}
+
+/* canvas {
+    display: block;
+    margin: 20px auto;
+    width: 500px;
+    height: 500px;
+  } */
+ 
+
+  .sub-menu {
+    display: none; /* Hide the sub-menu by default */
+}
+
+.sub-menu.show {
+    display: block; /* Show the sub-menu when it has the 'show' class */
+}
+
+.active-sub-menu {
+    color: #515acc!important; /* Apply the active highlight */
+}
+
+.dotted-chart-class{
+    display: none;
+}
+.line-chart-class{
+    height:400px;
+}
+
+.line-chart-class canvas{
+    height: 400px;
+}
+
+.gif-loader{
+    width: 100%;
+    margin-top: 60px;
+    display: none;
+    background-color: white;
+    height: 100vh;
+}
+
+.gif-loader img{
+   width: 500px;
+   height: 500px;
+}
+
+#pg-content{
+    display: none;
+}
+
