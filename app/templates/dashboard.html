@@ -36,7 +36,7 @@
 
         <nav class="sidebar">
             <div class="sidebar-header">
-                <a href="#">
+                <a href="dashboard_view">
                     <img src="../static/assets/images/logo.png" alt="logo" class="w-75">
                 </a>
                 <div class="sidebar-toggler not-active">
@@ -48,7 +48,7 @@
             <div class="sidebar-body">
                 <ul class="nav">
                     <li class="nav-item active">
-                        <a href="/flights" class="nav-link">
+                        <a href="/dashboard_view" class="nav-link">
                             <i class="fa-sharp fa-solid fa-gauge"></i>
                             <span class="link-title">Dashboard</span>
                         </a>
@@ -96,6 +96,36 @@
             <nav class="navbar">
                 <div class="navbar-content">
 
+        <div class="navbar-content">
+
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <img class="wd-30 ht-30 rounded-circle" src="/static/assets/images/user-icon.png"
+                            alt="profile">
+                    </a>
+                    <div class="dropdown-menu p-0" aria-labelledby="profileDropdown">
+                        <div class="d-flex flex-column align-items-center border-bottom px-5 py-3">
+                            <div class="mb-3">
+                                <img class="wd-80 ht-80 rounded-circle" src="/static/assets/images/user-icon.png" alt>
+                            </div>
+                            <div class="text-center">
+                                <p class="tx-16 fw-bolder">Hi Admin!</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled p-1">
+                            <li class="dropdown-item py-2">
+                                <a  id="logoutLink" class="text-body ms-0" href="#">
+                                    <i class="me-2 icon-md" data-feather="log-out"></i>
+                                    <span>Log Out</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
 
                 </div>
             </nav>
@@ -145,26 +175,34 @@
                                     </div>
                                 </div>
                             </div>
-
-
-
                         </div>
                     </div>
                 </div>
                 <!-- Total Airlines -->
 
 
+                 <!-- Logout Modal -->
+            <div class="modal" id="logoutModal" tabindex="-1" role="dialog">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Logout Confirmation</h5>
+
+                  </div>
+                  <div class="modal-body">
+                    <p>Are you sure you want to log out?</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="logout()">Logout</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelLogout()" data-dismiss="modal">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
 
-
-
-
-
-
-
-
-
-
+    </div>
+  </div>
 
                 <footer
                     class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small"
@@ -176,6 +214,7 @@
 
             </div>
         </div>
+
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script data-cfasync="false"
             src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
@@ -263,6 +302,39 @@
             // })();
         </script>
 
+<script>
+  // Function to show the logout modal when the "Logout" link is clicked
+  function showLogoutModal() {
+    $('#logoutModal').modal('show');
+  }
+
+  // Function to hide the logout modal when the "Cancel" button is clicked
+  function hideLogoutModal() {
+    $('#logoutModal').modal('hide');
+  }
+
+  // Function to submit the logout form with POST method
+  function logout() {
+    const logoutForm = document.createElement('form');
+    logoutForm.method = 'post';
+    logoutForm.action = '/logout';
+
+    document.body.appendChild(logoutForm);
+    logoutForm.submit();
+
+  }
+    function cancelLogout() {
+            // Close the modal when the "Cancel" button is clicked
+            $('#logoutModal').modal('hide');
+        }
+        
+
+  // Event listener to show the modal when the "Logout" link is clicked
+  document.getElementById('logoutLink').addEventListener('click', showLogoutModal);
+
+  // Event listener to hide the modal when the "Cancel" button is clicked
+  document.getElementById('cancelButton').addEventListener('click', hideLogoutModal);
+</script>
 
 </body>
 

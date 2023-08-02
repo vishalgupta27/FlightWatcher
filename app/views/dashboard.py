@@ -1,10 +1,11 @@
 import requests
-from mariadb._mariadb import connection
 
 from app import app, cur, conn
-from flask import Flask, redirect, url_for, render_template, request, flash, session
+from flask import Flask, redirect, url_for, render_template, request, flash, session, jsonify
 from datetime import datetime
 import mariadb
+
+from config import config
 
 
 @app.route('/get_data_from_api', methods=['GET'])
@@ -19,7 +20,7 @@ def get_data_from_api():
 
     if response.status_code == 200:
         api_data = response.json()
-        print(api_data,"dataAPI")  # Optionally print the API data
+        print(api_data, "dataAPI")  # Optionally print the API data
         # Assuming you have a function to extract relevant data from api_data
         data_list = extract_data_from_api(api_data)
         insert_or_update_data(data_list)  # Call insert_data() with the extracted data
@@ -52,12 +53,10 @@ def extract_data_from_api(api_data):
 
 @app.route('/dashboard_view')
 def dashboard():
+    if not session.get('logged_in'):
+        # Return an error response if the user is not logged in
+        return redirect(url_for('login'))
     return render_template('dashboard.html')
-
-
-@app.route('/watchlist')
-def watchListView():
-    return render_template("watchlist.html")
 
 
 @app.route('/graphical-analysis')
@@ -65,7 +64,7 @@ def graphicalAnalysisView():
     return render_template("graphical-analysis.html")
 
 
-def clear_table():
+def delete_table():
     try:
         # SQL query to delete all data from the table
         sql = "DELETE FROM flightdetails"
@@ -82,25 +81,8 @@ def clear_table():
         print("Error occurred while clearing the table:", str(e))
 
 
-# def insert_data(data_list):
-#     # SQL query to insert data into the database
-#     sql = ("INSERT INTO flightdetails (flightName, airlineName, arrivalTime, departureTime, status) "
-#            "VALUES (%s, %s, %s, %s, %s)")
-#
-#     try:
-#         for data in data_list:
-#             cur.execute(sql, data)
-#             conn.commit()
-#             print("Data inserted successfully! The number of rows affected is:", cur.rowcount)
-#
-#     except Exception as e:
-#         print("Error occurred while inserting data:", str(e))
-
-
-# Call the function to insert data in the database
-# insert_data()
-
-
+def get_db_connection():
+    return mariadb.connect(**config)
 
 
 @app.route('/check-flight')
@@ -120,21 +102,38 @@ def checkFlightView():
         # Calculate the offset based on the current page number
         offset = (page - 1) * flights_per_page
 
-        # SQL query to fetch data from the database with pagination and search filter
-        sql = f"SELECT flightName, airlineName, arrivalTime, departureTime, status, futurePrediction, isWatchlist " \
-              f"FROM flightdetails WHERE airlineName LIKE '%{search_query}%' " \
-              f"LIMIT {flights_per_page} OFFSET {offset}"
-        print("SQL Query:", sql)
+        # Establish the database connection
+        conn = get_db_connection()
 
-        # Execute the query to fetch the current page of flight data
-        cur.execute(sql)
-        flights_data = cur.fetchall()
-        print("Fetched Data:", flights_data)
+        # Use a context manager to create a cursor and automatically close it
+        with conn.cursor() as cur:
+            # SQL query to fetch data from the database with pagination and search filter
+            sql = f"SELECT flightName, airlineName, arrivalTime, departureTime, status, futurePrediction, isWatchlist " \
+                  f"FROM flightdetails"
 
-        # SQL query to get the total number of flights with the search filter applied
-        count_sql = f"SELECT COUNT(*) FROM flightdetails WHERE airlineName LIKE '%{search_query}%'"
-        cur.execute(count_sql)
-        total_flights = cur.fetchone()[0]
+            # Apply search filter if a search_query is provided
+            if search_query:
+                sql += f" WHERE airlineName LIKE '%{search_query}%'"
+
+            # Add LIMIT and OFFSET for pagination
+            sql += f" LIMIT {flights_per_page} OFFSET {offset}"
+
+            print("SQL Query:", sql)
+
+            # Execute the query to fetch the current page of flight data
+            cur.execute(sql)
+            flights_data = cur.fetchall()
+            print("Fetched Data:", flights_data)
+
+            # SQL query to get the total number of flights with the search filter applied
+            count_sql = f"SELECT COUNT(*) FROM flightdetails"
+
+            # Apply search filter if a search_query is provided
+            if search_query:
+                count_sql += f" WHERE airlineName LIKE '%{search_query}%'"
+
+            cur.execute(count_sql)
+            total_flights = cur.fetchone()[0]
 
         # Calculate the total number of pages
         total_pages = (total_flights + flights_per_page - 1) // flights_per_page
@@ -146,9 +145,13 @@ def checkFlightView():
         start_page = max(1, page - max_pagination_links // 2)
         end_page = min(total_pages, start_page + max_pagination_links - 1)
 
+        # Close the database connection
+        conn.close()
+
         return render_template('check-flight.html', flights=flights_data, current_page=page,
                                total_pages=total_pages, start_page=start_page, end_page=end_page,
-                               search_query=search_query)
+                               search_query=search_query, flights_per_page=flights_per_page,
+                               total_flights=total_flights)
 
     except Exception as e:
         print("Error occurred while fetching data:", str(e))
@@ -208,34 +211,10 @@ def remove_duplicates():
 # remove_duplicates()
 
 
-def delete_data():
-    try:
-        # SQL query to delete data from the database based on specific conditions
-        sql = "DELETE FROM flightdetails WHERE airlineName = %s AND status = %s"
-
-        # Data to identify the rows to be deleted
-        airline_to_delete = 'Indigo3'
-        status_to_delete = 'OnTime'
-
-        # Execute the DELETE query with the conditions
-        cur.execute(sql, (airline_to_delete, status_to_delete))
-
-        # Commit the changes after deleting data
-        conn.commit()
-
-        print("Data deleted successfully! The number of rows affected is:", cur.rowcount)
-
-    except Exception as e:
-        # Rollback changes in case of an error
-        conn.rollback()
-        print("Error occurred while deleting data:", str(e))
-
-
-# # Call the function to delete data from the database
-# delete_data()
-
-
 def insert_or_update_data(data_list):
+    if not session.get('logged_in'):
+        # Return an error response if the user is not logged in
+        return redirect(url_for('login'))
     try:
         for data in data_list:
             flight_number = data[0]
@@ -262,8 +241,9 @@ def insert_or_update_data(data_list):
                 print("Data inserted successfully! The number of rows affected is:", cur.rowcount)
             else:
                 # Data already exists, update data in the database
-                update_sql = ("UPDATE flightdetails SET airlineName = %s, arrivalTime = %s, departureTime = %s, status = %s "
-                              "WHERE flightName = %s")
+                update_sql = (
+                    "UPDATE flightdetails SET airlineName = %s, arrivalTime = %s, departureTime = %s, status = %s "
+                    "WHERE flightName = %s")
 
                 # Append the flightName to the data tuple for the UPDATE query
                 data_for_update = data[1:5] + (flight_number,)
@@ -282,35 +262,101 @@ def insert_or_update_data(data_list):
         print("Error occurred while inserting or updating data:", str(e))
 
 
-from flask import request, redirect, url_for
+@app.route('/add-all-to-watchlist', methods=['POST'])
+def addAllToWatchlist():
+    if not session.get('logged_in'):
+        # Return an error response if the user is not logged in
+        return redirect(url_for('login'))
 
-@app.route('/add_all_to_watchlist', methods=['POST'])
-def add_all_to_watchlist():
     try:
-        # Retrieve all the flight data from the check-flight list
-        all_flights = request.form.getlist('flight_checkbox')
+        # Get the selected flights data from the form submission
+        selected_flights = request.form.getlist('flightCheckbox')
+        print(selected_flights,"click seleected_flights")
 
-        if not all_flights:
-            # No flights selected, redirect back to check-flight page
-            return redirect(url_for('check-flight'))
+        # Establish the database connection
+        conn = get_db_connection()
 
-        # Loop through the list of flight IDs and update their isWatchlist status to True
-        for flight_id in all_flights:
-            # Assuming flight_id is the primary key of the flight in the database
-            update_sql = "UPDATE flightdetails SET isWatchlist = %s WHERE flight_id = %s"
+        # Use a context manager to create a cursor and automatically close it
+        with conn.cursor() as cur:
+            # Loop through the selected flights data and insert into the watchlist table
+            for flight_data in selected_flights:
+                airlineName, flightName, arrivalTime, departureTime, status = flight_data.split(',')
+                # Assuming you have a 'watchlist' table with appropriate columns for flight_name and airline_name
+                sql = (f"INSERT INTO watchlistdetails (airlineName, flightName, arrivalTime, departureTime, status) "
+                       f"VALUES (%s, %s, %s, %s, %s) "
+                       f"ON DUPLICATE KEY UPDATE "
+                       f"airlineName=VALUES(airlineName), flightName=VALUES(flightName), "
+                       f"arrivalTime=VALUES(arrivalTime), departureTime=VALUES(departureTime), "
+                       f"status=VALUES(status)")
+                cur.execute(sql, (airlineName, flightName, arrivalTime, departureTime, status))
 
-            # Execute the UPDATE query with isWatchlist set to True and the flight_id
-            cur.execute(update_sql, (True, flight_id))
-
-            # Commit the changes after updating data
+            # Commit the changes to the database
             conn.commit()
 
-        print("All selected flights added to the watchlist successfully!")
-        return render_template("watchlist.html")  # Redirect back to check-flight page after the update
+        # Close the database connection
+        conn.close()
+
+        # Redirect to the Check Flight page after successful addition
+        return redirect(url_for('checkFlightView'))
 
     except Exception as e:
-        # Rollback changes in case of an error
-        conn.rollback()
-        print("Error occurred while adding flights to the watchlist:", str(e))
-        return "Error occurred while adding flights to the watchlist."
+        # Return an error response if there's an exception
+        return "An error occurred while processing the request", 500
 
+
+@app.route('/watchlist')
+def watchlist():
+    if not session.get('logged_in'):
+        # User is not logged in, redirect to the login page
+        return redirect(url_for('login'))
+
+    try:
+        # Establish the database connection
+        conn = get_db_connection()
+
+        # Use a context manager to create a cursor and automatically close it
+        with conn.cursor() as cur:
+            # SQL query to fetch all data from the watchlist table
+            sql = "SELECT * FROM watchlistdetails"
+            cur.execute(sql)
+            watchlist_data = cur.fetchall()
+            print(watchlist_data, "jbkjb")
+
+        # Close the database connection
+        conn.close()
+
+        return render_template('watchlist.html', watchlist_data=watchlist_data)
+
+    except Exception as e:
+        # Return an error response if there's an exception
+        return "An error occurred while fetching data", 500
+
+
+@app.route('/remove-from-watchlist/<int:id>', methods=['POST'])
+def removeFromWatchlist(id):
+    if not session.get('logged_in'):
+        # Return an error response if the user is not logged in
+        return redirect(url_for('login'))
+
+    try:
+        # Establish the database connection
+        conn = get_db_connection()
+
+        # Use a context manager to create a cursor and automatically close it
+        with conn.cursor() as cur:
+            # SQL query to remove the watchlist data with the given id
+            sql = "DELETE FROM watchlistdetails WHERE id = %s"
+            cur.execute(sql, (id,))
+
+            # Commit the changes to the database
+            conn.commit()
+
+        # Close the database connection
+        conn.close()
+
+        # Redirect back to the Watchlist page after successful removal
+        return redirect(url_for('watchlist'))
+
+    except Exception as e:
+        # Return an error response if there's an exception
+        return "An error occurred while processing the request", 500

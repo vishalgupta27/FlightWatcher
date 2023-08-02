@@ -47,7 +47,7 @@ def login():
             session['logged_in'] = True
             session['is_admin'] = True
             session['email'] = email
-            return redirect('/flights')
+            return redirect('/dashboard_view')
         else:
             flash('Invalid Email and password', 'error')
             return render_template('auth/login.html')

@@ -28,13 +28,16 @@
     <link rel="stylesheet" href="../static/assets/css/cutom.css"/>
 
     <link rel="shortcut icon" href="../static/assets/images/logo.png"/>
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+
 </head>
 
 <body>
 <div class="main-wrapper">
     <nav class="sidebar">
         <div class="sidebar-header">
-            <a href="#">
+            <a href="dashboard_view">
                 <img src="../static/assets/images/logo.png" alt="logo" class="w-75"/>
             </a>
             <div class="sidebar-toggler not-active">
@@ -46,7 +49,7 @@
         <div class="sidebar-body">
             <ul class="nav">
                 <li class="nav-item">
-                    <a href="/flights" class="nav-link">
+                    <a href="/dashboard_view" class="nav-link">
                         <i class="fa-sharp fa-solid fa-gauge"></i>
                         <span class="link-title">Dashboard</span>
                     </a>
@@ -102,7 +105,7 @@
                         Check Flight
                     </li>
                 </ol>
-                <a href="dashboard.html" class="btn btn-primary"><i class="link-icon"
+                <a href="dashboard_view" class="btn btn-primary"><i class="link-icon"
                                                                     data-feather="arrow-left"></i>Back to
                     Dahsbaord</a>
             </nav>
@@ -128,22 +131,13 @@
                                 <option value="3">Cancel</option>
                             </select>
                         </div>
-                        <!--                            <div class="col-lg-3 col-md-4 text-center">-->
-                        <!--                                <label for="fullname" class="form-label">-->
-                        <!--                                    Add all to watchlist </label><br />-->
-                        <!--                                <span class="form-check form-switch">-->
-                        <!--                                    <input type="checkbox" class="form-check-input"-->
-                        <!--                                        id="addALL" /></span>-->
-                        <!--                            </div>-->
-                        <div class="col-lg-3 col-md-4 text-center">
-                            <label for="fullname" class="form-label">
-                                Add all to watchlist </label><br/>
-                            <span class="form-check form-switch">
+                            <div class="col-lg-3 col-md-4 text-center">
+                                <label for="fullname" class="form-label">
+                                    Add all to watchlist </label><br />
+                                <span class="form-check form-switch">
                                     <input type="checkbox" class="form-check-input"
-                                           id="addALL"/>
-                                    <input type="hidden" id="watchlist" name="watchlist" value=""/>
-                                </span>
-                        </div>
+                                        id="addALL" /></span>
+                            </div>
                     </div>
                 </form>
             </div>
@@ -153,7 +147,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table">
+                            <form action="{{ url_for('addAllToWatchlist') }}" method="POST">
+                                <table id="flightTable" class="table">
                                     <thead>
                                     <tr>
                                         <th>S.N</th>
@@ -169,11 +164,12 @@
                                     <tbody>
                                     {% for flight in flights %}
                                     <tr>
-                                        <td>{{ loop.index }}</td>
+                                        <td>{{ (current_page - 1) * flights_per_page + loop.index }}</td>
                                         <td class="text-center">
-                                    <span class="form-check form-switch"><input type="checkbox"
-                                                                                class="form-check-input"
-                                                                                id="formSwitch"/></span>
+                                            <span class="form-check form-switch">
+                                                <input type="checkbox" name="flightCheckbox"
+                                                       value="{{ flight[1] }},{{ flight[0] }},{{ flight[2] }},{{ flight[3] }},{{ flight[4] }}"
+                                                                                        class="form-check-input"/></span>
                                         </td>
                                         <td>{{ flight[0] }}</td>
                                         <td>{{ flight[1] }}</td>
@@ -185,48 +181,73 @@
                                     {% endfor %}
                                     </tbody>
                                 </table>
+                            </form>
                             </div>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        Showing {{ (current_page - 1) * flights_per_page + 1 }} to {{ (current_page - 1) * flights_per_page + flights|length }} of {{ total_flights }} entries
+                                    </div>
+                                    <div class="col-md-6">
+                                        <nav aria-label="Page navigation"  >
+                                            <ul class="pagination" >
+                                                {% if current_page > 1 %}
+                                <!--                <li class="page-item">-->
+                                <!--                    <a class="page-link" href="{{ url_for('checkFlightView', page=1, search=search_query) }}">First</a>-->
+                                <!--                </li>-->
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('checkFlightView', page=current_page-1, search=search_query) }}">Previous</a>
+                                                </li>
+                                                {% endif %}
+                                                {% for page_num in range(start_page, end_page + 1) %}
+                                                <li class="page-item {% if page_num == current_page %}active{% endif %}">
+                                                    <a class="page-link" href="{{ url_for('checkFlightView', page=page_num, search=search_query) }}">{{ page_num }}</a>
+                                                </li>
+                                                {% endfor %}
+                                                {% if current_page < total_pages %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('checkFlightView', page=current_page+1, search=search_query) }}">Next</a>
+                                                </li>
+                                <!--                <li class="page-item">-->
+                                <!--                    <a class="page-link" href="{{ url_for('checkFlightView', page=total_pages, search=search_query) }}">Last</a>-->
+                                <!--                </li>-->
+                                                {% endif %}
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </div>
+                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                            <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+                            <script>
+                                $(document).ready(function () {
+                                    $('#flightTable').DataTable({
+                                        processing: true,
+                                        serverSide: true,
+                                        ajax: {
+                                            url: '/check-flight',
+                                            type: 'GET',
+                                            data: function (d) {
+                                                d.page = $('#flightTable').DataTable().page.info().page + 1;
+                                                d.search = $('input[type="search"]').val();
+                                            },
+                                        },
+                                        columns: [
+                                            { data: 'S.N' },
+                                            { data: 'Add to Watchlist' },
+                                            { data: 'Flight Name' },
+                                            { data: 'Airline Name' },
+                                            { data: 'Arrival Time' },
+                                            { data: 'Departure Time' },
+                                            { data: 'Status' },
+                                            { data: 'Future Prediction' },
+                                        ]
+                                    });
+                                });
+                            </script>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="dataTables_paginate">
-
-                    <ul class="pagination">
-                        {% if current_page > 1 %}
-                        <li class="paginate_button page-item">
-                            <a href="{{ url_for('checkFlightView', page=1) }}" class="page-link">First</a>
-                        </li>
-                        <li class="paginate_button page-item">
-                            <a href="{{ url_for('checkFlightView', page=current_page - 1) }}"
-                               class="page-link">Previous</a>
-                        </li>
-                        {% endif %}
-
-                        {% for page_num in range(1, 4): %}
-                        <li class="paginate_button page-item">
-                            <a href="{{ url_for('checkFlightView', page=page_num) }}" class="page-link"
-                               {% if page_num== current_page %}class="active" {% endif %}>{{ page_num }}</a>
-                        </li>
-                        {% endfor %}
-
-                        {% if current_page < total_pages %}
-                        <li class="paginate_button page-item">
-                            <a href="{{ url_for('checkFlightView', page=current_page + 1) }}" class="page-link">Next</a>
-                        </li>
-                        <li class="paginate_button page-item">
-                            <a href="{{ url_for('checkFlightView', page=total_pages) }}" class="page-link">Last</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-
-
-                </div>
-            </div>
         </div>
-
         <footer
                 class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
             <p class="text-muted mb-1 mb-md-0">
@@ -234,72 +255,14 @@
                 <a href="https://htmldesigntemplates.com/html/travelin/index.html" target="_blank">Flight
                     Watcher</a>.
             </p>
-            <p class="text-muted">
-                Powered By
-                <i class="mb-1 text-primary ms-1 icon-sm" data-feather="heart"></i>
-                Bizberg Themes
-            </p>
+
         </footer>
     </div>
 </div>
-<!--    <div class="modal fade" id="viewappoint" tabindex="-1" aria-labelledby="viewappoint" aria-hidden="true">-->
-<!--        <div class="modal-dialog">-->
-<!--            <div class="modal-content">-->
-<!--                <div class="modal-header text-center">-->
-<!--                    <h5 class="modal-title" id="exampleModalLabel">Add Content</h5>-->
-<!--                </div>-->
-<!--                <div class="modal-body">-->
-<!--                    <table id="dataTableExample" class="table">-->
-<!--                        <tbody>-->
-<!--                            <tr>-->
-<!--                                <td>Appointment Date</td>-->
-<!--                                <td>2022/04/25</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Patient Name</td>-->
-<!--                                <td>Suraj Karki</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Age</td>-->
-<!--                                <td>32</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Gender</td>-->
-<!--                                <td>Male</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Contact No.</td>-->
-<!--                                <td>9841000000</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Department</td>-->
-<!--                                <td>Cardiology</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Doctor Name</td>-->
-<!--                                <td>Dr. Keshav Raj</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Appointment Time</td>-->
-<!--                                <td>7.30 AM</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>Note</td>-->
-<!--                                <td>Here goes something note</td>-->
-<!--                            </tr>-->
-<!--                            <tr>-->
-<!--                                <td>REASON</td>-->
-<!--                                <td>Here goes something reason</td>-->
-<!--                            </tr>-->
-<!--                        </tbody>-->
-<!--                    </table>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
+
 
 <script data-cfasync="false" src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-<script src="../staticassets/vendors/core/core.js"></script>
+<script src="../static/assets/vendors/core/core.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="../static/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
 
@@ -413,20 +376,21 @@
     });
 
 </script>
+<!--checkbox JavaScript code will trigger the form submission automatically.-->
 <script>
-    // Add an event listener to the addALL checkbox
-    document.getElementById('addALL').addEventListener('click', function() {
-        // Get the list of items
-        var items = document.querySelectorAll('.list-group-item');
-
-        // Add all of the items to the watchlist
-        for (var i = 0; i < items.length; i++) {
-            var item = items[i];
-            var watchlist = document.getElementById('watchlist');
-            watchlist.value += item.textContent + ',';
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+                if (this.checked) {
+                    // Trigger form submission when checkbox is checked
+                    this.closest('form').submit();
+                }
+            });
+        });
     });
 </script>
+
 </body>
 
 </html>

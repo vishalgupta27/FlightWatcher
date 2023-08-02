@@ -37,7 +37,7 @@
 
         <nav class="sidebar">
             <div class="sidebar-header">
-                <a href="#">
+                <a href="dashboard_view">
                     <img src="../static/assets/images/logo.png" alt="logo" class="w-75">
                 </a>
                 <div class="sidebar-toggler not-active">
@@ -49,7 +49,7 @@
             <div class="sidebar-body">
                 <ul class="nav">
                     <li class="nav-item">
-                        <a href="/flights" class="nav-link">
+                        <a href="/dashboard_view" class="nav-link">
                             <i class="fa-sharp fa-solid fa-gauge"></i>
                             <span class="link-title">Dashboard</span>
                         </a>
@@ -99,7 +99,7 @@
             </nav>
 
             <div class="gif-loader">
-                <img src="assets/images/airplane-loader.gif" alt="">
+                <img src="../static/assets/images/airplane-loader.gif" alt="">
             </div>
 
 
@@ -109,7 +109,7 @@
                         <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Watchlist</li>
                     </ol>
-                    <a href="dashboard.html" class="btn btn-primary"><i class="link-icon" data-feather="arrow-left"></i>
+                    <a href="/dashboard_view" class="btn btn-primary"><i class="link-icon" data-feather="arrow-left"></i>
                         Back to Dahsbaord</a>
                 </nav>
                 <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
@@ -167,7 +167,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table  class="table">
+                                    <table id="watchlistTable" class="table">
                                         <thead>
                                             <tr>
                                                 <th class = "text-center">S.N</th>
@@ -180,20 +180,24 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                        {% for flight in watchlist_data %}
                                             <tr>
-                                                 {% for item in watchlist %}
-                                                <td class = "text-center">{{ loop.index }}<</td>
-                                                <td class = "text-center">{{ item.flightName }}</td>
-                                                <td class = "text-center">Air India</td>
-                                                <td class = "text-center">2022/04/25, 2:30 min</td>
-                                                <td class = "text-center">2022/04/25, 2:30 min</td>
-                                                <td class = "text-center"><span class="verify bg-success">On Time</span></td>
+                                                <td class = "text-center">{{ loop.index }}</td>
+                                                <td class = "text-center">{{ flight[1] }}</td>
+                                                <td class = "text-center">{{ flight[2] }}</td>
+                                                <td class = "text-center">{{ flight[3] }}</td>
+                                                <td class = "text-center">{{ flight[4] }}</td>
                                                 <td class = "text-center">
-                                                    <i class="fa-solid fa-trash"></i>
+                                                    <span class="verify bg-success">{{ flight[5] }}</span></td>
+                                                <td class="text-center">
+                                                    <form action="{{ url_for('removeFromWatchlist', id=flight[0]) }}" method="post">
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="fas fa-trash"></i> <!-- Font Awesome trash icon -->
+                                                        </button>
+                                                    </form>
                                                 </td>
-                                                {% endfor %}
                                             </tr>
-
+                                        {% endfor %}
 
                                         </tbody>
                                     </table>
@@ -202,18 +206,21 @@
                         </div>
                     </div>
                 </div>
-
-
             </div>
 
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#watchlistTable').DataTable();
+        });
+    </script>
             <footer
                 class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
                 <p class="text-muted mb-1 mb-md-0">Copyright © 2022 <a
                         href="https://htmldesigntemplates.com/html/travelin/index.html" target="_blank">Flight Watcher</a>.
                 </p>
-                <p class="text-muted">Powered By <i class="mb-1 text-primary ms-1 icon-sm" data-feather="heart"></i>
-                    Bizberg Themes</p>
+
             </footer>
 
         </div>
