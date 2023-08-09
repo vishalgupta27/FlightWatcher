@@ -83,3 +83,106 @@ def hello():
 #    status VARCHAR(40),
 #    PRIMARY KEY ( id )
 # );
+
+
+
+# <div class="col-lg-3 col-md-4 text-center">
+#     <form action="{{ url_for('add_to_watchlist') }}" method="POST">
+#         <label class="form-label">
+#             Add all to watchlist
+#         </label><br />
+#         <span class="form-check form-switch">
+#             <input type="checkbox" name="flightCheckboxs"
+#                    value="{% for flight in flights %}
+#                            {{ flight[1] }},{{ flight[0] }},{{ flight[2] }},{{ flight[3] }},{{ flight[4] }}
+#                            {% if not loop.last %};{% endif %}
+#                            {% endfor %}"
+#                    class="form-check-input" />
+#         </span>
+#     </form>
+# </div>
+
+
+
+# def create_tables():
+#     try:
+#         conn = get_db_connection()
+#         cursor = conn.cursor()
+#
+#         # Create the flightdetails table if it doesn't exist
+#         flightdetails = """
+#             CREATE TABLE IF NOT EXISTS flightdetails (
+#                 id INT AUTO_INCREMENT PRIMARY KEY,
+#                 flightName VARCHAR(255),
+#                 airlineName VARCHAR(255),
+#                 arrivalTime DATETIME,
+#                 departureTime DATETIME,
+#                 status VARCHAR(255)
+#             )
+#         """
+#         cursor.execute(flightdetails)
+#
+#         # Create the watchlistdetails table with a foreign key reference to flightdetails
+#         watchlistdetails = """
+#             CREATE TABLE IF NOT EXISTS watchlistdetails (
+#                 id INT AUTO_INCREMENT PRIMARY KEY,
+#                 flight_id INT,
+#                 FOREIGN KEY (flight_id) REFERENCES flightdetails(id),
+#                 airlineName VARCHAR(255),
+#                 flightName VARCHAR(255),
+#                 arrivalTime DATETIME,
+#                 departureTime DATETIME,
+#                 status VARCHAR(255)
+#             )
+#         """
+#         cursor.execute(watchlistdetails)
+#
+#         conn.commit()
+#         cursor.close()
+#         conn.close()
+#
+#         print("Tables created successfully!")
+#
+#     except Exception as e:
+#         print("Error:", e)
+#         return "An error occurred while processing the request", 500
+
+
+# # Get the 'search' and 'status' query parameters from the URL
+# search_query = request.args.get('search', default='', type=str)
+# status = request.args.get('status', default='', type=str)
+#
+# # ...
+#
+# # SQL query to fetch data from the database with pagination and search filter
+# sql = f"SELECT id, flightName, airlineName, arrivalTime, departureTime, status, futurePrediction " \
+#       f"FROM flightdetails"
+#
+# # Apply combined search filter for airlineName/flightName and status
+# if search_query and status:
+#     sql += f" WHERE (airlineName LIKE '%{search_query}%' OR flightName LIKE '%{search_query}%') " \
+#            f"AND status = '{status}'"
+# elif search_query:
+#     sql += f" WHERE airlineName LIKE '%{search_query}%' OR flightName LIKE '%{search_query}%'"
+# elif status:
+#     sql += f" WHERE status = '{status}'"
+#
+# # Add LIMIT and OFFSET for pagination
+# sql += f" LIMIT {flights_per_page} OFFSET {offset}"
+
+# import requests
+#
+# apiKey = input("API Key: ")
+# apiUrl = "https://aeroapi.flightaware.com/aeroapi/"
+#
+# airport = 'KSFO'
+# payload = {'max_pages': 2}
+# auth_header = {'x-apikey':apiKey}
+#
+# response = requests.get(apiUrl + f"airports/{airport}/flights",
+#     params=payload, headers=auth_header)
+#
+# if response.status_code == 200:
+#     print(response.json())
+# else:
+#     print("Error executing request")

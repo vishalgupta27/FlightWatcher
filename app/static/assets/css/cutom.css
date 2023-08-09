@@ -68,3 +68,20 @@ span.cancel {
     display: none;
 }
 
+.form-select {
+    padding: 12px 30px 12px 15px;
+}
+
+.pagination .page-link {
+    padding: 3px 10px;
+}
+
+.btn.btn-icon.btn-sm {
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+}
+
+.btn.btn-icon.btn-sm i {
+    font-size: 12px;
+}

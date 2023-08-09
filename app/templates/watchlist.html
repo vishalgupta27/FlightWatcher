@@ -124,32 +124,32 @@
 
                             <div class="card-body">
                                 <h4 class="mb-4">Watchlist</h4>
-                                <form class="forms-sample">
+                                <form class="forms-sample"  action="/watchlist_search" method="get">
                                     <div class="row">
-
                                         <div class="col-lg-6 mb-3">
-                                            <label for="comapanyname" class="form-label">FLIGHT NAME</label>
-                                            <input type="text" class="form-control" placeholder="FLIGHT NAME">
+                                            <label  class="form-label">FLIGHT NAME</label>
+                                            <input type="text"  value="{{flight_name}}" class="form-control" name="flight_name" placeholder="FLIGHT NAME">
                                         </div>
                                         <div class="col-lg-6 mb-3">
-                                            <label for="contact" class="form-label">AIRLINE NAME</label>
-                                            <input type="text" class="form-control" placeholder="AIRLINE NAME">
+                                            <label  class="form-label">AIRLINE NAME</label>
+                                            <input type="text" value="{{airline_name}}" class="form-control" name="airline_name" placeholder="AIRLINE NAME">
                                         </div>
                                         <div class="col-lg-6 mb-3">
-                                            <label for="address" class="form-label">ARRIVAL TIME</label>
-                                            <input type="text" class="form-control" placeholder="ARRIVAL TIME">
+                                            <label  class="form-label">ARRIVAL TIME</label>
+                                            <input type=datetime-local value="{{arrival_time}}" class="form-control" name="arrival_time" placeholder="ARRIVAL TIME">
                                         </div>
                                         <div class="col-lg-6 mb-3">
-                                            <label for="address2" class="form-label">DEPARTURE TIME</label>
-                                            <input type="text" class="form-control" placeholder="DEPARTURE TIME">
+                                            <label  class="form-label">DEPARTURE TIME</label>
+                                            <input type=datetime-local value="{{departure_time}}" class="form-control" name="departure_time" placeholder="DEPARTURE TIME">
                                         </div>
                                         <div class="col-lg-6 mb-3">
-                                            <label for="" class="form-label">STATUS</label>
-                                            <select class="form-select form-select-lg">
+                                            <label  class="form-label">STATUS</label>
+                                            <select class="form-select form-select-lg" name="status" value="{{status}}">
                                                 <option selected>Status</option>
-                                                <option value="1">On Time</option>
-                                                <option value="2">Delay</option>
-                                                <option value="3">Remove</option>
+                                                <option value="1">Arrived/Delayed</option>
+                                                <option value="2">Delayed</option>
+                                                <option value="3">Gate Arrival</option>
+                                                <option value="3">Cancel</option>
                                             </select>
                                         </div>
 
@@ -191,8 +191,8 @@
                                                     <span class="verify bg-success">{{ flight[5] }}</span></td>
                                                 <td class="text-center">
                                                     <form action="{{ url_for('removeFromWatchlist', id=flight[0]) }}" method="post">
-                                                        <button type="submit" class="btn btn-danger btn-sm">
-                                                            <i class="fas fa-trash"></i> <!-- Font Awesome trash icon -->
+                                                        <button type="submit" class="btn btn-danger btn-sm btn-icon">
+                                                            <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>
                                                 </td>
@@ -208,13 +208,6 @@
                 </div>
             </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#watchlistTable').DataTable();
-        });
-    </script>
             <footer
                 class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
                 <p class="text-muted mb-1 mb-md-0">Copyright © 2022 <a

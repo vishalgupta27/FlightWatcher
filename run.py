@@ -1,4 +1,5 @@
 from app import app
+from app.views.tables import create_tables
 
 app.secret_key = "your_secret_key"
 

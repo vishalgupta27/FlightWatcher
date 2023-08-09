@@ -10,7 +10,7 @@ from config import config
 
 @app.route('/get_data_from_api', methods=['GET'])
 def get_data_from_api():
-    apiKey = "TMzHyydbypbUz2XUtWPrQC7pnBdnst7n"
+    apiKey = "HORQ0GSNlyxzjfB9j1wjakVGlJTeBA0q"
     apiUrl = "https://aeroapi.flightaware.com/aeroapi/"
 
     airport = 'KSFO'
@@ -28,6 +28,7 @@ def get_data_from_api():
 
     else:
         print("Error executing request")
+
 
 
 def extract_data_from_api(api_data):
@@ -51,12 +52,38 @@ def extract_data_from_api(api_data):
     return data_list
 
 
-@app.route('/dashboard_view')
+@app.route('/dashboard_view', methods=['GET'])
 def dashboard():
     if not session.get('logged_in'):
         # Return an error response if the user is not logged in
         return redirect(url_for('login'))
-    return render_template('dashboard.html')
+
+    try:
+        get_data_from_api()
+        # Establish the database connection
+        conn = get_db_connection()
+
+        # Use a context manager to create a cursor and automatically close it
+        with conn.cursor() as cur:
+            # SQL query to get the total number of flights
+            count_flights_sql = "SELECT COUNT(*) FROM flightdetails"
+            cur.execute(count_flights_sql)
+            total_flights = cur.fetchone()[0]
+
+            # SQL query to get the total number of airlines
+            count_airlines_sql = "SELECT COUNT(DISTINCT airlineName) FROM flightdetails"
+            cur.execute(count_airlines_sql)
+            total_airlines = cur.fetchone()[0]
+
+        # Close the database connection
+        conn.close()
+
+        return render_template('dashboard.html', total_flights=total_flights, total_airlines=total_airlines)
+
+    except Exception as e:
+        print("Error occurred while fetching data:", str(e))
+        return "An error occurred while fetching data."
+
 
 
 @app.route('/graphical-analysis')
@@ -85,16 +112,92 @@ def get_db_connection():
     return mariadb.connect(**config)
 
 
-@app.route('/check-flight')
+# @app.route('/check-flight')
+# def checkFlightView():
+#     if not session.get('logged_in'):
+#         # User is not logged in, redirect to the login page
+#         return redirect(url_for('login'))
+#
+#     try:
+#         # Get the 'page' and 'search' query parameters from the URL
+#         page = request.args.get('page', default=1, type=int)
+#         search_query = request.args.get('search', default='', type=str)
+#
+#         # Define the number of flights to display per page
+#         flights_per_page = 10
+#
+#         # Calculate the offset based on the current page number
+#         offset = (page - 1) * flights_per_page
+#
+#         # Establish the database connection
+#         conn = get_db_connection()
+#
+#         # Use a context manager to create a cursor and automatically close it
+#         with conn.cursor() as cur:
+#             # SQL query to fetch data from the database with pagination and search filter
+#             sql = f"SELECT id, flightName, airlineName, arrivalTime, departureTime, status, futurePrediction " \
+#                   f"FROM flightdetails"
+#
+#             # Apply search filter if a search_query is provided
+#             if search_query:
+#                 sql += (f" WHERE airlineName LIKE '%{search_query}%' OR flightName LIKE '%{search_query}%' "
+#                         f"OR status LIKE '%{search_query}%'")
+#
+#             # Add LIMIT and OFFSET for pagination
+#             sql += f" LIMIT {flights_per_page} OFFSET {offset}"
+#
+#             # Execute the query to fetch the current page of flight data
+#             cur.execute(sql)
+#             flights_data = cur.fetchall()
+#
+#             # Get the IDs of flights already in watchlistdetails table
+#             watchlist_ids_query = "SELECT flight_id FROM watchlistdetails"
+#             cur.execute(watchlist_ids_query)
+#             watchlist_ids = [row[0] for row in cur.fetchall()]
+#
+#             # SQL query to get the total number of flights with the search filter applied
+#             count_sql = f"SELECT COUNT(*) FROM flightdetails"
+#
+#             # Apply search filter if a search_query is provided
+#             if search_query:
+#                 count_sql += f" WHERE airlineName LIKE '%{search_query}%'"
+#
+#             cur.execute(count_sql)
+#             total_flights = cur.fetchone()[0]
+#
+#         # Calculate the total number of pages
+#         total_pages = (total_flights + flights_per_page - 1) // flights_per_page
+#
+#         # Define the number of pagination links to display
+#         max_pagination_links = 3
+#
+#         # Calculate the start and end page numbers for the pagination links
+#         start_page = max(1, page - max_pagination_links // 2)
+#         end_page = min(total_pages, start_page + max_pagination_links - 1)
+#
+#         # Close the database connection
+#         conn.close()
+#
+#         return render_template('check-flight.html', flights=flights_data, current_page=page,
+#                                total_pages=total_pages, start_page=start_page, end_page=end_page,
+#                                search_query=search_query, flights_per_page=flights_per_page,
+#                                total_flights=total_flights, watchlist_ids=watchlist_ids)
+#
+#     except Exception as e:
+#         print("Error occurred while fetching data:", str(e))
+#         return "An error occurred while fetching data."
+
+@app.route('/check-flight', methods=['GET'])
 def checkFlightView():
     if not session.get('logged_in'):
         # User is not logged in, redirect to the login page
         return redirect(url_for('login'))
 
     try:
-        # Get the 'page' and 'search' query parameters from the URL
+        # Get the 'page', 'search', and 'status' query parameters from the URL
         page = request.args.get('page', default=1, type=int)
         search_query = request.args.get('search', default='', type=str)
+        status = request.args.get('status', default='', type=str)
 
         # Define the number of flights to display per page
         flights_per_page = 10
@@ -108,29 +211,35 @@ def checkFlightView():
         # Use a context manager to create a cursor and automatically close it
         with conn.cursor() as cur:
             # SQL query to fetch data from the database with pagination and search filter
-            sql = f"SELECT flightName, airlineName, arrivalTime, departureTime, status, futurePrediction, isWatchlist " \
-                  f"FROM flightdetails"
+            sql = f"SELECT id, flightName, airlineName, arrivalTime, departureTime, status, futurePrediction " \
+                  f"FROM flightdetails WHERE 1=1"
 
             # Apply search filter if a search_query is provided
             if search_query:
-                sql += f" WHERE airlineName LIKE '%{search_query}%'"
+                sql += f" AND (airlineName LIKE '%{search_query}%' OR flightName LIKE '%{search_query}%')"
+
+            # Apply status filter if a status is selected
+            if status:
+                sql += f" AND status = '{status}'"
 
             # Add LIMIT and OFFSET for pagination
             sql += f" LIMIT {flights_per_page} OFFSET {offset}"
 
-            print("SQL Query:", sql)
-
             # Execute the query to fetch the current page of flight data
             cur.execute(sql)
             flights_data = cur.fetchall()
-            print("Fetched Data:", flights_data)
+
+            # Get the IDs of flights already in watchlistdetails table
+            watchlist_ids_query = "SELECT flight_id FROM watchlistdetails"
+            cur.execute(watchlist_ids_query)
+            watchlist_ids = [row[0] for row in cur.fetchall()]
 
             # SQL query to get the total number of flights with the search filter applied
-            count_sql = f"SELECT COUNT(*) FROM flightdetails"
+            count_sql = f"SELECT COUNT(*) FROM flightdetails WHERE 1=1"
 
             # Apply search filter if a search_query is provided
             if search_query:
-                count_sql += f" WHERE airlineName LIKE '%{search_query}%'"
+                count_sql += f" AND (airlineName LIKE '%{search_query}%' OR flightName LIKE '%{search_query}%')"
 
             cur.execute(count_sql)
             total_flights = cur.fetchone()[0]
@@ -151,11 +260,14 @@ def checkFlightView():
         return render_template('check-flight.html', flights=flights_data, current_page=page,
                                total_pages=total_pages, start_page=start_page, end_page=end_page,
                                search_query=search_query, flights_per_page=flights_per_page,
-                               total_flights=total_flights)
+                               total_flights=total_flights,watchlist_ids=watchlist_ids,
+                               selected_status=status)
 
     except Exception as e:
         print("Error occurred while fetching data:", str(e))
         return "An error occurred while fetching data."
+
+
 
 
 def update_data():
@@ -262,45 +374,72 @@ def insert_or_update_data(data_list):
         print("Error occurred while inserting or updating data:", str(e))
 
 
-@app.route('/add-all-to-watchlist', methods=['POST'])
-def addAllToWatchlist():
+@app.route('/toggle-watchlist', methods=['POST'])
+def toggleWatchlist():
     if not session.get('logged_in'):
-        # Return an error response if the user is not logged in
-        return redirect(url_for('login'))
+        return redirect('login')
 
     try:
-        # Get the selected flights data from the form submission
-        selected_flights = request.form.getlist('flightCheckbox')
-        print(selected_flights,"click seleected_flights")
+        data = request.get_json()
+        flight_id = data.get('flightId')
+        is_checked = data.get('isChecked')
 
         # Establish the database connection
         conn = get_db_connection()
 
-        # Use a context manager to create a cursor and automatically close it
         with conn.cursor() as cur:
-            # Loop through the selected flights data and insert into the watchlist table
-            for flight_data in selected_flights:
-                airlineName, flightName, arrivalTime, departureTime, status = flight_data.split(',')
-                # Assuming you have a 'watchlist' table with appropriate columns for flight_name and airline_name
-                sql = (f"INSERT INTO watchlistdetails (airlineName, flightName, arrivalTime, departureTime, status) "
-                       f"VALUES (%s, %s, %s, %s, %s) "
-                       f"ON DUPLICATE KEY UPDATE "
-                       f"airlineName=VALUES(airlineName), flightName=VALUES(flightName), "
-                       f"arrivalTime=VALUES(arrivalTime), departureTime=VALUES(departureTime), "
-                       f"status=VALUES(status)")
-                cur.execute(sql, (airlineName, flightName, arrivalTime, departureTime, status))
-
-            # Commit the changes to the database
+            if is_checked:
+                insert_query = "INSERT INTO watchlistdetails (flight_id) VALUES (%s)"
+                print(insert_query,"bbkb")
+                cur.execute(insert_query, (flight_id,))
+            else:
+                delete_query = "DELETE FROM watchlistdetails WHERE flight_id = %s"
+                cur.execute(delete_query, (flight_id,))
             conn.commit()
 
-        # Close the database connection
         conn.close()
 
-        # Redirect to the Check Flight page after successful addition
-        return redirect(url_for('checkFlightView'))
+        return redirect('check-flight')
 
     except Exception as e:
-        # Return an error response if there's an exception
+        return "An error occurred while processing the request", 500
+
+
+@app.route('/add-all-to-watchlist', methods=['POST'])
+def addAllToWatchlist():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        data = request.get_json()
+        flight_ids = data.get('flightIds')
+        print(flight_ids, "ids")
+
+        # Establish the database connection
+        conn = get_db_connection()
+
+        with conn.cursor() as cur:
+            for flight_id in flight_ids:
+                # Check if the flight_id already exists in watchlistdetails table
+                check_query = "SELECT flight_id FROM watchlistdetails WHERE flight_id = %s"
+                cur.execute(check_query, (flight_id,))
+                existing_entry = cur.fetchone()
+
+                if existing_entry is None:
+                    # If the entry doesn't exist, insert it
+                    insert_query = "INSERT INTO watchlistdetails (flight_id) VALUES (%s)"
+                    cur.execute(insert_query, (flight_id,))
+                # else :
+                #     delete_query = "DELETE FROM watchlistdetails WHERE flight_id = %s"
+                #     cur.execute(delete_query, (flight_id,))
+
+            conn.commit()
+
+        conn.close()
+
+        return "Flights added to watchlist successfully", 200
+
+    except Exception as e:
         return "An error occurred while processing the request", 500
 
 
@@ -316,8 +455,12 @@ def watchlist():
 
         # Use a context manager to create a cursor and automatically close it
         with conn.cursor() as cur:
-            # SQL query to fetch all data from the watchlist table
-            sql = "SELECT * FROM watchlistdetails"
+            # SQL query to fetch flight details from watchlistdetails table and flightdetails table
+            sql = """
+            SELECT wd.id, fd.flightName, fd.airlineName, fd.arrivalTime, fd.departureTime, fd.status
+            FROM watchlistdetails wd
+            JOIN flightdetails fd ON wd.flight_id = fd.id
+            """
             cur.execute(sql)
             watchlist_data = cur.fetchall()
             print(watchlist_data, "jbkjb")
@@ -330,6 +473,8 @@ def watchlist():
     except Exception as e:
         # Return an error response if there's an exception
         return "An error occurred while fetching data", 500
+
+
 
 
 @app.route('/remove-from-watchlist/<int:id>', methods=['POST'])
@@ -360,3 +505,53 @@ def removeFromWatchlist(id):
     except Exception as e:
         # Return an error response if there's an exception
         return "An error occurred while processing the request", 500
+
+
+@app.route('/watchlist_search', methods=['GET'])
+def watchlist_search():
+    # Get search parameters from the form
+    flight_name = request.args.get('flight_name', default='', type=str)
+    airline_name = request.args.get('airline_name', default='', type=str)
+    arrival_time = request.args.get('arrival_time', default='', type=str)
+    departure_time = request.args.get('departure_time', default='', type=str)
+    status = request.args.get('status', default='')
+
+    # Establish the database connection
+    conn = get_db_connection()
+
+    try:
+        # Use a context manager to create a cursor and automatically close it
+        with conn.cursor() as cur:
+            # SQL query to fetch data based on search parameters, joining with flightdetails table
+            sql = """
+            SELECT wd.id, fd.flightName, fd.airlineName, fd.arrivalTime, fd.departureTime, fd.status
+            FROM watchlistdetails wd
+            JOIN flightdetails fd ON wd.flight_id = fd.id
+            WHERE (fd.airlineName LIKE %s AND fd.flightName LIKE %s) OR
+                  fd.arrivalTime LIKE %s OR fd.departureTime LIKE %s OR fd.status = %s
+            """
+            cur.execute(sql, (f'%{airline_name}%', f'%{flight_name}%', f'%{arrival_time}%', f'%{departure_time}%', status))
+
+            search_results = cur.fetchall()
+
+
+    except Exception as e:
+        error_message = "An error occurred while processing the request"
+        print("An error occurred:", str(e))
+        return render_template('search_watchlist.html', error_message=error_message)
+
+    finally:
+        # Close the database connection
+        conn.close()
+    return render_template('search_watchlist.html', searched_flights=search_results,
+                           flight_name=flight_name, airline_name=airline_name,
+                           arrival_time=arrival_time, departure_time=departure_time,
+                           status=status)
+
+
+
+
+
+
+
+

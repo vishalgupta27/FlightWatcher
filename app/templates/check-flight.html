@@ -34,6 +34,18 @@
 </head>
 
 <body>
+    <!-- Flashed Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-dismissible fade show" role="alert"
+                         style="{% if category == 'error' %}background-color: #f8d7da; color: #721c24;{% elif category == 'success' %}background-color: #d4edda; color: #155724;{% endif %}">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
 <div class="main-wrapper">
     <nav class="sidebar">
         <div class="sidebar-header">
@@ -110,36 +122,47 @@
                     Dahsbaord</a>
             </nav>
             <div class="search-box p-4 bg-white rounded mb-3 box-shadow">
-                <!--                    <form class="forms-sample">-->
-                <form class="forms-sample" action="{{ url_for('checkFlightView') }}" method="get">
-                    <div class="row align-items-center">
-                        <div class="col-lg-3">
-                            <h5>Check Flight Lists</h5>
-                        </div>
-                        <div class="col-lg-4 col-md-4">
-                            <label class="form-label">Search Flight</label><br/>
-                            <input type="text" name="search" value="{{ search_query }}"
-                                   placeholder="Search by airline name" class="form-control"/>
 
-                        </div>
-                        <div class="col-lg-2 col-md-4">
-                            <label for="fullname" class="form-label"> Status</label><br/>
-                            <select class="form-select form-select-lg">
-                                <option selected>Status</option>
-                                <option value="1">On Time</option>
-                                <option value="2">Delay</option>
-                                <option value="3">Cancel</option>
-                            </select>
-                        </div>
-                            <div class="col-lg-3 col-md-4 text-center">
-                                <label for="fullname" class="form-label">
-                                    Add all to watchlist </label><br />
-                                <span class="form-check form-switch">
-                                    <input type="checkbox" class="form-check-input"
-                                        id="addALL" /></span>
-                            </div>
+                <div class="row align-items-center">
+                    <div class="col-lg-3">
+                        <h5>Check Flight List</h5>
                     </div>
-                </form>
+                    <div class="col-lg-6 col-md-8">
+                        <form class="forms-sample w-100" action="{{ url_for('checkFlightView') }}" method="get"
+                              id="search-form">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <label class="form-label">Search Flight Name / Airline Name</label><br/>
+                                    <input type="text" name="search" id="search-input" value="{{ search_query }}"
+                                           placeholder="Search" class="form-control"/>
+                                </div>
+                                <div class="col-lg-5">
+    <label for="fullname" class="form-label">Status</label><br/>
+    <select class="form-select form-select-lg" id="status-dropdown" onchange="updateURL()">
+        <option value="">Status</option>
+        <option value="Arrived / Gate Arrival" {% if selected_status == 'Arrived / Gate Arrival' %}selected{% endif %}>Arrived / Gate Arrival</option>
+        <option value="Arrived / Delayed" {% if selected_status == 'Arrived / Delayed' %}selected{% endif %}>Arrived / Delayed</option>
+        <option value="Landed / Taxiing" {% if selected_status == 'Landed / Taxiing' %}selected{% endif %}>Landed / Taxiing</option>
+        <option value="Arrived" {% if selected_status == 'Arrived' %}selected{% endif %}>Arrived</option>
+    </select>
+</div>
+
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-3 col-md-4 text-center">
+                     <form id="toggle-watchlist-form">
+                        <label class="form-label">
+                            Add all to watchlist
+                        </label><br/>
+                        <span class="form-check form-switch">
+                            <input type="checkbox" id="addAllWatchlist" class="form-check-input"/>
+
+                        </span>
+                    </form>
+                    </div>
+                </div>
+
             </div>
 
             <div class="row">
@@ -147,109 +170,96 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                            <form action="{{ url_for('addAllToWatchlist') }}" method="POST">
-                                <table id="flightTable" class="table">
-                                    <thead>
-                                    <tr>
-                                        <th>S.N</th>
-                                        <th>Add to Watchlist</th>
-                                        <th>Flight Name</th>
-                                        <th>Airline Name</th>
-                                        <th>Arrival Time</th>
-                                        <th>Departure Time</th>
-                                        <th>Status</th>
-                                        <th>Future Prediction</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for flight in flights %}
-                                    <tr>
-                                        <td>{{ (current_page - 1) * flights_per_page + loop.index }}</td>
-                                        <td class="text-center">
+                                {% if flights %}
+
+                                    <table id="flightTable" class="table">
+                                        <thead>
+                                        <tr>
+                                            <th>S.N</th>
+                                            <th>Add to Watchlist</th>
+                                            <th>Flight Name</th>
+                                            <th>Airline Name</th>
+                                            <th>Arrival Time</th>
+                                            <th>Departure Time</th>
+                                            <th>Status</th>
+                                            <th>Future Prediction</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for flight in flights %}
+                                        <tr>
+                                            <td>{{ (current_page - 1) * flights_per_page + loop.index }}</td>
+                                            <td class="text-center">
                                             <span class="form-check form-switch">
-                                                <input type="checkbox" name="flightCheckbox"
-                                                       value="{{ flight[1] }},{{ flight[0] }},{{ flight[2] }},{{ flight[3] }},{{ flight[4] }}"
-                                                                                        class="form-check-input"/></span>
-                                        </td>
-                                        <td>{{ flight[0] }}</td>
-                                        <td>{{ flight[1] }}</td>
-                                        <td>{{ flight[2] }}</td>
-                                        <td>{{ flight[3] }}</td>
-                                        <td>{{ flight[4] }}</td>
-                                        <td>{{ flight[5] }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </form>
+                                                <input type="checkbox" name="flightCheckbox" value="{{ flight[0] }}" class="form-check-input"
+                                                       {% if flight[0] in watchlist_ids %}checked{% endif %}
+                                                       onclick="toggleWatchlist(this)"/>
+                                            </span>
+                                            </td>
+
+                                            <td>{{ flight[1] }}</td>
+                                            <td>{{ flight[2] }}</td>
+                                            <td>{{ flight[3] }}</td>
+                                            <td>{{ flight[4] }}</td>
+                                            <td>{{ flight[5] }}</td>
+                                            <td>{{ flight[6] }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {% else %}
+                                    <div class="text-center">
+                                        <p style="font-weight: normal;font-size: 18px;">No data found</p>
+                                    </div>
+                                    {% endif %}
+
                             </div>
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        Showing {{ (current_page - 1) * flights_per_page + 1 }} to {{ (current_page - 1) * flights_per_page + flights|length }} of {{ total_flights }} entries
-                                    </div>
-                                    <div class="col-md-6">
-                                        <nav aria-label="Page navigation"  >
-                                            <ul class="pagination" >
-                                                {% if current_page > 1 %}
-                                <!--                <li class="page-item">-->
-                                <!--                    <a class="page-link" href="{{ url_for('checkFlightView', page=1, search=search_query) }}">First</a>-->
-                                <!--                </li>-->
-                                                <li class="page-item">
-                                                    <a class="page-link" href="{{ url_for('checkFlightView', page=current_page-1, search=search_query) }}">Previous</a>
-                                                </li>
-                                                {% endif %}
-                                                {% for page_num in range(start_page, end_page + 1) %}
-                                                <li class="page-item {% if page_num == current_page %}active{% endif %}">
-                                                    <a class="page-link" href="{{ url_for('checkFlightView', page=page_num, search=search_query) }}">{{ page_num }}</a>
-                                                </li>
-                                                {% endfor %}
-                                                {% if current_page < total_pages %}
-                                                <li class="page-item">
-                                                    <a class="page-link" href="{{ url_for('checkFlightView', page=current_page+1, search=search_query) }}">Next</a>
-                                                </li>
-                                <!--                <li class="page-item">-->
-                                <!--                    <a class="page-link" href="{{ url_for('checkFlightView', page=total_pages, search=search_query) }}">Last</a>-->
-                                <!--                </li>-->
-                                                {% endif %}
-                                            </ul>
-                                        </nav>
-                                    </div>
+                            <div class="row mt-3 justify-content-between align-items-center">
+                                <div class="col-md-6">
+                                    Showing {{ (current_page - 1) * flights_per_page + 1 }} to {{ (current_page - 1) *
+                                    flights_per_page + flights|length }} of {{ total_flights }} entries
                                 </div>
-                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                            <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
-                            <script>
-                                $(document).ready(function () {
-                                    $('#flightTable').DataTable({
-                                        processing: true,
-                                        serverSide: true,
-                                        ajax: {
-                                            url: '/check-flight',
-                                            type: 'GET',
-                                            data: function (d) {
-                                                d.page = $('#flightTable').DataTable().page.info().page + 1;
-                                                d.search = $('input[type="search"]').val();
-                                            },
-                                        },
-                                        columns: [
-                                            { data: 'S.N' },
-                                            { data: 'Add to Watchlist' },
-                                            { data: 'Flight Name' },
-                                            { data: 'Airline Name' },
-                                            { data: 'Arrival Time' },
-                                            { data: 'Departure Time' },
-                                            { data: 'Status' },
-                                            { data: 'Future Prediction' },
-                                        ]
-                                    });
-                                });
-                            </script>
+                                <div class="col-md-6 d-flex justify-content-end">
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination">
+                                            {% if current_page > 1 %}
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="{{ url_for('checkFlightView', page=1, search=search_query) }}">First</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="{{ url_for('checkFlightView', page=current_page-1, search=search_query) }}">Previous</a>
+                                            </li>
+                                            {% endif %}
+                                            {% for page_num in range(start_page, end_page + 1) %}
+                                            <li class="page-item {% if page_num == current_page %}active{% endif %}">
+                                                <a class="page-link"
+                                                   href="{{ url_for('checkFlightView', page=page_num, search=search_query) }}">{{
+                                                    page_num }}</a>
+                                            </li>
+                                            {% endfor %}
+                                            {% if current_page < total_pages %}
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="{{ url_for('checkFlightView', page=current_page+1, search=search_query) }}">Next</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="{{ url_for('checkFlightView', page=total_pages, search=search_query) }}">Last</a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <footer
-                class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
+        <footer class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
             <p class="text-muted mb-1 mb-md-0">
                 Copyright © 2022
                 <a href="https://htmldesigntemplates.com/html/travelin/index.html" target="_blank">Flight
@@ -259,6 +269,57 @@
         </footer>
     </div>
 </div>
+
+<!-- Start Pagination functionality  code -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#flightTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/check-flight',
+                type: 'GET',
+                data: function (d) {
+                    d.page = $('#flightTable').DataTable().page.info().page + 1;
+                    d.search = $('input[type="search"]').val();
+                },
+            },
+            columns: [
+                { data: 'S.N' },
+                { data: 'Add to Watchlist' },
+                { data: 'Flight Name' },
+                { data: 'Airline Name' },
+                { data: 'Arrival Time' },
+                { data: 'Departure Time' },
+                { data: 'Status' },
+                { data: 'Future Prediction' },
+            ]
+        });
+    });
+</script>
+<!-- End Pagination functionality  code -->
+
+<!-- Start Search functionality status and search box code -->
+<script>
+    function updateURL() {
+        var selectedStatus = document.getElementById('status-dropdown').value;
+        var searchQuery = document.getElementById('search-input').value; // Get the search query if needed
+        var url = '{{ url_for("checkFlightView") }}';
+
+        if (selectedStatus) {
+            url += '?status=' + encodeURIComponent(selectedStatus);
+        }
+
+        if (searchQuery) {
+            url += '&search=' + encodeURIComponent(searchQuery);
+        }
+
+        window.location.href = url;
+    }
+</script>
+<!-- End Search functionality status and search box code -->
 
 
 <script data-cfasync="false" src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
@@ -271,6 +332,7 @@
 
 <script src="../static/assets/js/datepicker.js"></script>
 
+<!-- Start gif loadder and sub menu code -->
 <script>
 
     $(document).ready(function () {
@@ -304,92 +366,83 @@
                 }
             });
         })
-
-
-        // parentItems.forEach(function (parentItem) {
-        //     parentItem.addEventListener('click', function (event) {
-        //         // Toggle the visibility of the sub-menu
-
-        //         var subMenu = parentItem.querySelector('.sub-menu');
-        //         if (subMenu) {
-        //             event.preventDefault(); // Prevent the default link behavior
-        //             subMenu.classList.toggle('show');
-
-        //         }
-        //     });
-        // });
-
-
     })
 
-    // (function () {
-    //     var js =
-    //         "window['__CF$cv$params']={r:'7db3fb04cd610dad',m:'nxhewYrAtgh3QUG6E5K.44kU.6UwT9CcMVW8k9Ub5bw-1687431552-0-AQvlesnBJnmjTuRlPDfS2VbC5lIBUxUo3W6TAh82CaKr'};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='../../../cdn-cgi/challenge-platform/h/b/scripts/jsd/19ad4730/invisible.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";
-    //     var _0xh = document.createElement("iframe");
-    //     _0xh.height = 1;
-    //     _0xh.width = 1;
-    //     _0xh.style.position = "absolute";
-    //     _0xh.style.top = 0;
-    //     _0xh.style.left = 0;
-    //     _0xh.style.border = "none";
-    //     _0xh.style.visibility = "hidden";
-    //     document.body.appendChild(_0xh);
-    //     function handler() {
-    //         var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;
-    //         if (_0xi) {
-    //             var _0xj = _0xi.createElement("script");
-    //             _0xj.nonce = "";
-    //             _0xj.innerHTML = js;
-    //             _0xi.getElementsByTagName("head")[0].appendChild(_0xj);
-    //         }
-    //     }
-    //     if (document.readyState !== "loading") {
-    //         handler();
-    //     } else if (window.addEventListener) {
-    //         document.addEventListener("DOMContentLoaded", handler);
-    //     } else {
-    //         var prev = document.onreadystatechange || function () { };
-    //         document.onreadystatechange = function (e) {
-    //             prev(e);
-    //             if (document.readyState !== "loading") {
-    //                 document.onreadystatechange = prev;
-    //                 handler();
-    //             }
-    //         };
-    //     }
-    // })();
-    // Wait for the DOM to be fully loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        // Get the "Add all" checkbox and individual checkboxes
-        var addAllCheckbox = document.getElementById('addALL');
-        var checkboxes = document.querySelectorAll('.form-check-input');
-
-        // Add event listener to the "Add all" checkbox
-        addAllCheckbox.addEventListener('change', function () {
-            var isChecked = addAllCheckbox.checked;
-
-            // Update the state of individual checkboxes
-            checkboxes.forEach(function (checkbox) {
-                checkbox.checked = isChecked;
-            });
-        });
-    });
-
 </script>
-<!--checkbox JavaScript code will trigger the form submission automatically.-->
+<!-- End gif loadder and sub menu code -->
+
+<!-- Start checkbox JavaScript code single checkbox.-->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach((checkbox) => {
-            checkbox.addEventListener("change", function () {
-                if (this.checked) {
-                    // Trigger form submission when checkbox is checked
-                    this.closest('form').submit();
-                }
-            });
-        });
-    });
+function toggleWatchlist(checkbox) {
+    var flightId = checkbox.value;
+    var isChecked = checkbox.checked;
+
+    // Send AJAX request to update the watchlist
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/toggle-watchlist', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+
+            // Display an alert message based on the isChecked value
+            if (isChecked) {
+                alert('Flight added to  watchlist');
+            } else {
+                alert('Flight removed from the watchlist');
+            }
+        }
+    };
+
+    xhr.send(JSON.stringify({ flightId: flightId,isChecked: isChecked }));
+}
 </script>
+<!-- End checkbox JavaScript code single checkbox.-->
+
+<!-- Start checkbox JavaScript code add all to checkbox.-->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var addAllCheckbox = document.getElementById('addAllWatchlist');
+    var checkboxes = document.querySelectorAll('.form-check-input');
+
+    addAllCheckbox.addEventListener('change', function () {
+        var isChecked = addAllCheckbox.checked;
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.checked = isChecked;
+        });
+
+        if (isChecked) {
+            var flightIds = Array.from(checkboxes)
+                .filter(function (checkbox) {
+                    return checkbox.checked && checkbox.value !== 'on';
+                })
+                .map(function (checkbox) {
+                    return checkbox.value;
+                });
+
+            // Send an AJAX request to add all flights to watchlist
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/add-all-to-watchlist', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    if (isChecked) {
+                alert('Flight added to  watchlist');
+            } else {
+                alert('Flight removed from the watchlist');
+            }
+                    console.log(xhr.responseText);
+                }
+            };
+
+            xhr.send(JSON.stringify({ flightIds: flightIds }));
+        }
+    });
+});
+</script>
+
+<!-- End checkbox JavaScript code add all to checkbox.-->
+
 
 </body>
 
