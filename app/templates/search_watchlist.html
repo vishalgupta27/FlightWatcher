@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Flight Watch">
+    <meta name="author" content="Flight Watch">
+    <title>:: Flight Watcher ::</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+        rel="stylesheet">
+
+
+    <link rel="stylesheet" href="../static/assets/vendors/core/core.css">
+
+
+    <link rel="stylesheet" href="../static/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css">
+
+
+    <link rel="stylesheet" href="../static/assets/fonts/feather-font/css/iconfont.css">
+
+    <script src="https://kit.fontawesome.com/aab125e3bb.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="../static/assets/css/style.css">
+
+    <link rel="stylesheet" href="../static/assets/css/cutom.css">
+
+    <link rel="shortcut icon" href="../static/assets/images/logo.png" />
+</head>
+
+<body>
+    <div class="main-wrapper">
+
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <a href="dashboard_view">
+                    <img src="../static/assets/images/logo.png" alt="logo" class="w-75">
+                </a>
+                <div class="sidebar-toggler not-active">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="sidebar-body">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a href="/dashboard_view" class="nav-link">
+                            <i class="fa-sharp fa-solid fa-gauge"></i>
+                            <span class="link-title">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a href="/check-flight" class="nav-link">
+                            <i class="fa-sharp fa-solid fa-plane"></i>
+                            <span class="link-title">Check Flight</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a href="/watchlist" class="nav-link">
+                            <i class="fa-regular fa-eye"></i>
+                            <span class="link-title">Watchlist</span>
+                        </a>
+                    </li>
+                    <li class="nav-item ">
+                        <a href="/graphical-analysis" class="nav-link">
+                            <i class="fa fa-bar-chart"></i>
+                            <span class="link-title me-2">Graphical Analysis</span>
+                            <i class="fa fa-angle-down dropdown-icon mt-1"></i>
+                        </a>
+                        <ul class="sub-menu">
+                            <li class="nav-item" id="line-graph-menu">
+                                <a class="nav-link">
+                              
+                                    <span class="link-title">Line Graph</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" id="dotted-chart-menu">
+                                <a class="nav-link">
+                    
+                                    <span class="link-title">Dotted Graph</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                </ul>
+            </div>
+        </nav>
+
+        <div class="page-wrapper">
+
+            <nav class="navbar">
+
+            </nav>
+
+            <div class="gif-loader">
+                <img src="../static/assets/images/airplane-loader.gif" alt="">
+            </div>
+
+
+            <div class="page-content" id="pg-content">
+                <nav class="page-breadcrumb d-flex align-items-center justify-content-between">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Watchlist</li>
+                    </ol>
+                    <a href="/dashboard_view" class="btn btn-primary"><i class="link-icon" data-feather="arrow-left"></i>
+                        Back to Dahsbaord</a>
+                </nav>
+                <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                    <div>
+                        <h4 class="mb-3 mb-md-0">Watchlist</h4>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="mb-4">Watchlist</h4>
+                                <form class="forms-sample"  action="/watchlist_search" method="get">
+                                    <div class="row">
+                                        <div class="col-lg-6 mb-3">
+                                            <label  class="form-label">FLIGHT NAME</label>
+                                            <input type="text" class="form-control" value="{{flight_name}}" name="flight_name" placeholder="FLIGHT NAME">
+                                        </div>
+                                        <div class="col-lg-6 mb-3">
+                                            <label  class="form-label">AIRLINE NAME</label>
+                                            <input type="text" class="form-control" value="{{airline_name}}" name="airline_name" placeholder="AIRLINE NAME">
+                                        </div>
+                                        <div class="col-lg-6 mb-3">
+                                            <label  class="form-label">ARRIVAL TIME</label>
+                                            <input type=datetime-local class="form-control" value="{{arrival_time}}" name="arrival_time" placeholder="ARRIVAL TIME">
+                                        </div>
+                                        <div class="col-lg-6 mb-3">
+                                            <label  class="form-label">DEPARTURE TIME</label>
+                                            <input type=datetime-local class="form-control" value="{{departure_time}}" name="departure_time" placeholder="DEPARTURE TIME">
+                                        </div>
+                                        <div class="col-lg-6 mb-3">
+                                            <label class="form-label">STATUS</label>
+                                            <select class="form-select form-select-lg" name="status">
+                                                <option value="">Status</option>
+                                                <option value="1" {% if status == '1' %}selected{% endif %}>Arrived/Delayed</option>
+                                                <option value="2" {% if status == '2' %}selected{% endif %}>Delayed</option>
+                                                <option value="3" {% if status == '3' %}selected{% endif %}>Gate Arrival</option>
+                                                <option value="4" {% if status == '4' %}selected{% endif %}>Cancel</option>
+                                            </select>
+                                        </div>
+
+
+                                        <div class="text-center">
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 grid-margin stretch-card">
+                        <div class="card">
+
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                     {% if searched_flights %}
+                                    <table id="watchlistTable" class="table">
+                                        <thead>
+                                            <tr>
+                                                <th class = "text-center">S.N</th>
+                                                <th class = "text-center">Flight Name</th>
+                                                <th class = "text-center">Airline Name</th>
+                                                <th class = "text-center">Arrival Time</th>
+                                                <th class = "text-center">Departure Time</th>
+                                                <th class = "text-center">Status</th>
+                                                <th class = "text-center">REMOVE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for flight in searched_flights %}
+                                            <tr>
+                                                <td class = "text-center">{{ loop.index }}</td>
+                                                <td class = "text-center">{{ flight[1] }}</td>
+                                                <td class = "text-center">{{ flight[2] }}</td>
+                                                <td class = "text-center">{{ flight[3] }}</td>
+                                                <td class = "text-center">{{ flight[4] }}</td>
+                                                <td class = "text-center">
+                                                    <span class="verify bg-success">{{ flight[5]}}</span></td>
+                                                <td class="text-center">
+                                                    <form action="{{ url_for('removeFromWatchlist', id=flight[0]) }}" method="post">
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="fas fa-trash"></i> <!-- Font Awesome trash icon -->
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {% else %}
+                                        <p>No results found</p>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#watchlistTable').DataTable();
+        });
+    </script>
+            <footer
+                class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
+                <p class="text-muted mb-1 mb-md-0">Copyright © 2022 <a
+                        href="https://htmldesigntemplates.com/html/travelin/index.html" target="_blank">Flight Watcher</a>.
+                </p>
+
+            </footer>
+
+        </div>
+    </div>
+
+    <script data-cfasync="false" src="../../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../static/assets/vendors/core/core.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../static/assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="../static/assets/vendors/feather-icons/feather.min.js"></script>
+    <script src="../static/assets/js/template.js"></script>
+    <script src="../static/assets/js/datepicker.js"></script>
+    <script>
+    (function () { var js = "window['__CF$cv$params']={r:'7db3fb04cd610dad',m:'nxhewYrAtgh3QUG6E5K.44kU.6UwT9CcMVW8k9Ub5bw-1687431552-0-AQvlesnBJnmjTuRlPDfS2VbC5lIBUxUo3W6TAh82CaKr'};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='../../../cdn-cgi/challenge-platform/h/b/scripts/jsd/19ad4730/invisible.js',document.getElementsByTagName('head')[0].appendChild(_cpo);"; var _0xh = document.createElement('iframe'); _0xh.height = 1; _0xh.width = 1; _0xh.style.position = 'absolute'; _0xh.style.top = 0; _0xh.style.left = 0; _0xh.style.border = 'none'; _0xh.style.visibility = 'hidden'; document.body.appendChild(_0xh); function handler() { var _0xi = _0xh.contentDocument || _0xh.contentWindow.document; if (_0xi) { var _0xj = _0xi.createElement('script'); _0xj.nonce = ''; _0xj.innerHTML = js; _0xi.getElementsByTagName('head')[0].appendChild(_0xj); } } if (document.readyState !== 'loading') { handler(); } else if (window.addEventListener) { document.addEventListener('DOMContentLoaded', handler); } else { var prev = document.onreadystatechange || function () { }; document.onreadystatechange = function (e) { prev(e); if (document.readyState !== 'loading') { document.onreadystatechange = prev; handler(); } }; } })();
+ 
+    $(document).ready(function(){
+        var parentItems = document.querySelectorAll('.nav-item');
+        var parentMenu = document.querySelector(".dropdown");
+            var subMenus = document.querySelectorAll(".dropdown-menu .nav-item");
+
+            // Add a click event listener to each submenu
+            subMenus.forEach(function (submenu) {
+                submenu.addEventListener("click", function () {
+                    // Remove "highlight" class from all submenus
+                    subMenus.forEach(function (submenu) {
+                        submenu.classList.remove("active");
+                    });
+
+                    // Add "highlight" class to the clicked submenu
+                    this.classList.add("active");
+
+                    // Add "highlight" class to the parent menu
+                    if (parentMenu) {
+                        parentMenu.classList.add("active");
+                    }
+                });
+            })
+
+            $('.gif-loader').css({  'display': 'flex','justify-content':'center','align-items':'center' });
+                setTimeout(() => {
+                    $('.gif-loader').css({ 'display': 'none' });
+                    $('#pg-content').css({ 'display': 'flex', 'flex-direction': 'column' })
+                }, 2000);
+        // parentItems.forEach(function (parentItem) {
+        //         parentItem.addEventListener('click', function (event) {
+        //             // Toggle the visibility of the sub-menu
+        //             var subMenu = parentItem.querySelector('.sub-menu');
+        //             if (subMenu) {
+        //                 event.preventDefault(); // Prevent the default link behavior
+        //                 subMenu.classList.toggle('show');
+                     
+        //             }
+        //         });
+        //     });
+    })
+    
+    
+    </script>
+
+</body>
+
+
+</html>
