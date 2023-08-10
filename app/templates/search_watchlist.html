@@ -151,8 +151,6 @@
                                                 <option value="4" {% if status == '4' %}selected{% endif %}>Cancel</option>
                                             </select>
                                         </div>
-
-
                                         <div class="text-center">
                                             <button type="submit" class="btn btn-primary">Submit</button>
                                         </div>
@@ -165,7 +163,18 @@
                 <div class="row">
                     <div class="col-md-12 grid-margin stretch-card">
                         <div class="card">
-
+                              <!-- Flashed Messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-dismissible fade show" role="alert"
+                             style="{% if category == 'error' %}background-color: #f8d7da; color: #721c24;{% elif category == 'success' %}background-color: #d4edda; color: #155724;{% endif %}">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
                             <div class="card-body">
                                 <div class="table-responsive">
                                      {% if searched_flights %}
@@ -206,20 +215,12 @@
                                         <p>No results found</p>
                                     {% endif %}
                                 </div>
-
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#watchlistTable').DataTable();
-        });
-    </script>
             <footer
                 class="footer d-flex flex-column flex-md-row align-items-center justify-content-between px-4 py-3 border-top small">
                 <p class="text-muted mb-1 mb-md-0">Copyright © 2022 <a

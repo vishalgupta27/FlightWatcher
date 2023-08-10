@@ -34,18 +34,7 @@
 </head>
 
 <body>
-    <!-- Flashed Messages -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                    {% for category, message in messages %}
-                    <div class="alert alert-dismissible fade show" role="alert"
-                         style="{% if category == 'error' %}background-color: #f8d7da; color: #721c24;{% elif category == 'success' %}background-color: #d4edda; color: #155724;{% endif %}">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                    {% endwith %}
+
 <div class="main-wrapper">
     <nav class="sidebar">
         <div class="sidebar-header">
